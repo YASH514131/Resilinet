@@ -1,0 +1,6 @@
+ultralytics==8.2.0        # YOLOv8 + ByteTrack (built-in)
+opencv-python==4.10.0.84  # Frame capture, annotation, screenshot
+neo4j==5.21.0             # Graph database driver
+python-dotenv==1.0.1      # .env file loading
+numpy==1.26.4             # Array operations
+Pillow==10.3.0            # Image saving utilities
