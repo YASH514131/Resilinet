@@ -9,7 +9,7 @@
 //   4. Handle interactive map clicks to lock a coordinate pin and open the
 //      manual report dispatch form (POST /report).
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import {
   MapContainer,
   TileLayer,
@@ -21,6 +21,7 @@ import {
 import L from 'leaflet';
 
 // ─── Severity → color mapping (mirrors the docs and mobile app) ──────────────
+// eslint-disable-next-line react-refresh/only-export-components
 export const SEVERITY_COLORS = {
   LOW:      '#3b82f6', // blue
   MEDIUM:   '#f59e0b', // amber
@@ -79,11 +80,7 @@ export default function MapView({
   const [submitting, setSubmitting] = useState(false);
   const [submitMsg, setSubmitMsg] = useState('');
 
-  // When pin changes, reset the form.
-  useEffect(() => {
-    setReportForm({ description: '' });
-    setSubmitMsg('');
-  }, [pinnedCoord]);
+  // Removed setState from useEffect on pinnedCoord
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -98,7 +95,7 @@ export default function MapView({
       );
       setSubmitMsg('✓ Report submitted successfully!');
       setReportForm({ description: '' });
-    } catch (err) {
+    } catch {
       setSubmitMsg('✗ Failed to submit. Please try again.');
     } finally {
       setSubmitting(false);

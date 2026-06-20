@@ -8,6 +8,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import MapView, { SEVERITY_COLORS } from './MapView';
 import { useDispatchSocket } from './useDispatchSocket';
+import IncidentFeed from './IncidentFeed';
+import AlertPanel from './AlertPanel';
 import './App.css';
 
 // ─── Backend URLs ─────────────────────────────────────────────────────────────
@@ -208,6 +210,8 @@ export default function App() {
           shared WebSocket hook above.
         */}
         <aside id="sidebar">
+          <AlertPanel dispatches={dispatches} />
+          
           {/* ── Feed Header ── */}
           <div id="sidebar-header">
             <h2 id="sidebar-title">Live Dispatches</h2>
@@ -239,41 +243,11 @@ export default function App() {
           </div>
 
           {/* ── Dispatch Feed ── */}
-          <div id="feed-list">
-            {filteredFeed.length === 0 && (
-              <div id="feed-empty">
-                {dispatches.length === 0
-                  ? 'Waiting for live incidents…'
-                  : `No ${severityFilter} incidents.`}
-              </div>
-            )}
-
-            {filteredFeed.map((d) => (
-              <div
-                key={d.incident_id}
-                className="feed-card"
-                style={{ borderLeft: `3px solid ${SEVERITY_COLORS[d.severity] ?? '#64748b'}` }}
-              >
-                <div className="feed-card-top">
-                  <span
-                    className={`badge badge-${d.severity}`}
-                  >
-                    {d.severity}
-                  </span>
-                  <span className="feed-card-category">{d.category}</span>
-                </div>
-                <p className="feed-card-text">{d.dispatch_text}</p>
-                <div className="feed-card-meta">
-                  <span>
-                    🚑 {d.recommended_responder_id ?? 'Unassigned'}
-                  </span>
-                  <span className="feed-card-id">
-                    #{d.incident_id?.slice(-6)}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+          <IncidentFeed 
+            dispatches={filteredFeed} 
+            isFiltered={severityFilter !== 'ALL'}
+            severityFilter={severityFilter} 
+          />
         </aside>
       </div>
     </div>

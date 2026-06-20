@@ -22,50 +22,51 @@ export function useDispatchSocket(url) {
   const retryTimer  = useRef(null);
   const unmounted   = useRef(false);
 
-  const connect = useCallback(() => {
-    if (unmounted.current) return;
-
-    setConnectionStatus((prev) => (prev === 'connected' ? 'reconnecting' : 'connecting'));
-
-    const socket = new WebSocket(url);
-    socketRef.current = socket;
-
-    socket.onopen = () => {
-      if (unmounted.current) { socket.close(); return; }
-      setConnectionStatus('connected');
-      retryDelay.current = INITIAL_RETRY_DELAY; // reset backoff on success
-    };
-
-    socket.onmessage = (event) => {
-      if (unmounted.current) return;
-      try {
-        const update = JSON.parse(event.data);
-        // Prepend newest dispatch so it always appears at the top of any feed.
-        setDispatches((prev) => [update, ...prev]);
-      } catch (e) {
-        console.error('[useDispatchSocket] Failed to parse message:', e);
-      }
-    };
-
-    socket.onclose = () => {
-      if (unmounted.current) return;
-      setConnectionStatus('disconnected');
-      // Auto-reconnect with exponential backoff.
-      retryTimer.current = setTimeout(() => {
-        retryDelay.current = Math.min(retryDelay.current * 2, MAX_RETRY_DELAY);
-        connect();
-      }, retryDelay.current);
-    };
-
-    socket.onerror = () => {
-      if (unmounted.current) return;
-      setConnectionStatus('error');
-      // onclose fires after onerror, which will trigger the reconnect.
-    };
-  }, [url]);
-
   useEffect(() => {
     unmounted.current = false;
+
+    function connect() {
+      if (unmounted.current) return;
+
+      setConnectionStatus((prev) => (prev === 'connected' ? 'reconnecting' : 'connecting'));
+
+      const socket = new WebSocket(url);
+      socketRef.current = socket;
+
+      socket.onopen = () => {
+        if (unmounted.current) { socket.close(); return; }
+        setConnectionStatus('connected');
+        retryDelay.current = INITIAL_RETRY_DELAY; // reset backoff on success
+      };
+
+      socket.onmessage = (event) => {
+        if (unmounted.current) return;
+        try {
+          const update = JSON.parse(event.data);
+          // Prepend newest dispatch so it always appears at the top of any feed.
+          setDispatches((prev) => [update, ...prev]);
+        } catch (e) {
+          console.error('[useDispatchSocket] Failed to parse message:', e);
+        }
+      };
+
+      socket.onclose = () => {
+        if (unmounted.current) return;
+        setConnectionStatus('disconnected');
+        // Auto-reconnect with exponential backoff.
+        retryTimer.current = setTimeout(() => {
+          retryDelay.current = Math.min(retryDelay.current * 2, MAX_RETRY_DELAY);
+          if (socketRef.current) connect();
+        }, retryDelay.current);
+      };
+
+      socket.onerror = () => {
+        if (unmounted.current) return;
+        setConnectionStatus('error');
+        // onclose fires after onerror, which will trigger the reconnect.
+      };
+    }
+
     connect();
 
     return () => {
@@ -77,10 +78,11 @@ export function useDispatchSocket(url) {
         socketRef.current.close();
       }
     };
-  }, [connect]);
+  }, [url]);
 
   // Expose a manual clear function for the UI (e.g. a "Clear feed" button).
   const clearDispatches = useCallback(() => setDispatches([]), []);
 
   return { dispatches, connectionStatus, clearDispatches };
 }
+
