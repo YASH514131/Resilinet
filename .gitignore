@@ -3,21 +3,32 @@ __pycache__/
 *.py[cod]
 *.pyo
 
-# Environment files
-backend/.env
+# Environment & Sensitive files
+*.env
 .env
+backend/.env
+*.pem
+*.key
+
+# Large Datasets & Training Runs
+backend/datasets/
+datasets/
+runs/
+
+# Runtime evidence captures
+backend/evidence_screenshots/
+evidence_screenshots/
+
+# Duplicate / Temporary Model Weights
+/yolov8*.pt
+backend/incident_yolov8n.pt
 
 # Virtual environments
+.venv/
 venv/
-.env/
+env/
 
 # OS files
 .DS_Store
 Thumbs.db
-
-# Logs
 *.log
-
-# Uncomment to ignore model weights if desired
-#*.pt
-#*.pth
